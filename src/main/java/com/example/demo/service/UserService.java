@@ -1,11 +1,13 @@
 package com.example.demo.service;
 
 import com.example.demo.controller.CreateUserDto;
+import com.example.demo.controller.UpdateUserDto;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,12 +22,10 @@ public class UserService {
 
     public UUID createUser(CreateUserDto createUserDto) {
 
-        var entity = new User(UUID.randomUUID(),
-                createUserDto.username(),
-                createUserDto.email(),
-                createUserDto.password(),
-                Instant.now(),
-                null);
+        var entity = new User();
+        entity.setUsername(createUserDto.username());
+        entity.setEmail(createUserDto.email());
+        entity.setPassword(createUserDto.password());
 
         var userSaved = userRepository.save(entity);
         return userSaved.getUserId();
@@ -33,5 +33,37 @@ public class UserService {
 
     public Optional<User> getUserById(String userId) {
        return userRepository.findById(UUID.fromString(userId));
+    }
+
+    public List<User> listUsers() {
+        return userRepository.findAll();
+    }
+
+    public void updateUserById(String userId, UpdateUserDto updateUserDto) {
+        var id = UUID.fromString(userId);
+
+        var userExists = userRepository.findById(id);
+
+        if (userExists.isPresent()) {
+            var user = userExists.get();
+
+            if (updateUserDto.username() != null) {
+                user.setUsername(updateUserDto.username());
+            }
+
+            if (updateUserDto.password() != null) {
+                user.setPassword(updateUserDto.password());
+            }
+
+            userRepository.save(user);
+        }
+    }
+
+    public void deleteById(String userId) {
+        var id = UUID.fromString(userId);
+        var userExists = userRepository.existsById(id);
+        if (userExists) {
+            userRepository.deleteById(id);
+        }
     }
 }
